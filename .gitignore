@@ -1,0 +1,8 @@
+# System files
+.DS_Store
+
+# Output dirs
+out/
+
+# Temporary files
+tmp/
