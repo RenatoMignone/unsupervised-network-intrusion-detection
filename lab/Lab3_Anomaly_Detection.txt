@@ -1,0 +1,151 @@
+===========================================================
+AI and Cybersecurity Project 3
+Project 3: Supervised vs Unsupervised Anomaly Detection
+With shallow and deep learning methodologies
+===========================================================
+
+1. OBJECTIVE
+-----------------------------------------------------------
+The goal of this laboratory is to apply Shallow and Deep Learning
+anomaly detection techniques in the framework of cybersecurity.
+Specifically, the lab evaluates how to create Intrusion Detection Systems (IDS).
+
+Students will analyze a dataset of network traffic labeled as normal
+or one of several attack types (DoS, Probe, R2L).
+Each row describes a connection with features like duration, protocol, bytes,
+and failed login attempts.
+
+The goal is to apply both shallow and deep learning methods
+for anomaly detection and data representation to address IDS tasks.
+
+Students will:
+ - Learn strategies to analyze datasets with normal and anomalous traffic
+ - Understand effects of assumptions (with/without labels)
+ - Experiment and compare different methods
+ - Use linear/nonlinear representations (PCA, autoencoder) for visualization,
+   dimensionality reduction, and performance evaluation
+
+===========================================================
+2. LAB RULES
+-----------------------------------------------------------
+Groups of 3 students, self-organized.
+Submit 4 zip files (one per lab activity):
+  - Report (max 10 pages): groupID_labX.pdf
+  - Jupyter notebook(s) and code (.ipynb + HTML export)
+  - Code must be runnable and contain results/output.
+
+Naming convention:
+  groupID_labX.zip
+
+Reports may be submitted up to 10 days before exam session.
+Exam and report submission dates are independent.
+
+===========================================================
+3. DATASET: Intrusion Detection System (IDS)
+-----------------------------------------------------------
+Dataset simulates IDS network logs used to detect unauthorized behavior.
+Each connection record includes statistical and behavioral features.
+
+Datasets:
+  - train.csv: labeled connections (normal + DoS, Probe, R2L)
+  - test.csv: heterogeneous network connections for testing
+
+Features:
+  * Basic: duration, protocol, service, flags
+  * Content: failed logins, sensitive file access, commands
+  * Traffic: statistics per host/service over time
+
+Labels:
+  * Attack label (specific attack type)
+  * Binary label: 0 = normal, 1 = attack
+
+These datasets simulate real-world issues:
+  - Class imbalance
+  - Redundant patterns
+  - Evolving attack strategies
+
+===========================================================
+4. TASKS
+-----------------------------------------------------------
+
+Task 1: Dataset Characterization and Preprocessing
+-----------------------------------------------------------
+ * Explore dataset: count categorical and numerical attributes.
+ * Examine attack label and binary label distribution.
+ * Preprocess features (handle categorical/numerical properly).
+ * Domain analysis: plot heatmaps per attack label:
+     - Mean heatmap
+     - Standard deviation heatmap
+     - Median heatmap
+ Q: Which characteristics correlate with specific attacks?
+
+Task 2: Shallow Anomaly Detection - Supervised vs Unsupervised
+-----------------------------------------------------------
+Using One-Class SVM (OC-SVM) with RBF kernel.
+
+1) Train OC-SVM on normal data only, evaluate all data.
+   Q: Estimate parameter ν. How does it affect performance?
+
+2) Train OC-SVM on all data, estimate ν as anomaly ratio.
+   Q: Which performs better? Why?
+
+3) Train with partial anomalies (0%, 10%, 20%, 50%, 100%).
+   Q: Plot F1-macro vs anomaly ratio. Analyze the trend.
+
+4) Robustness: test normal-only, all-data, and 10% anomaly models.
+   Q: Which performs best on test set? Which attack is most confused?
+
+Task 3: Deep Anomaly Detection and Data Representation
+-----------------------------------------------------------
+Using Autoencoder models.
+
+1) Train and validate Autoencoder on normal data.
+   Architecture: encoder-decoder with bottleneck.
+   Tune epochs and learning rate via validation.
+
+2) Estimate reconstruction error threshold:
+   - Compute reconstruction errors on validation set
+   - Plot ECDF
+   - Select threshold
+   Q: How did you choose the threshold? What is its value?
+
+3) Apply reconstruction error to classify anomalies:
+   - Compare ECDFs for validation, training, and test sets.
+   Q: Why are reconstruction errors higher on full training/test sets?
+
+4) Autoencoder’s bottleneck + OC-SVM:
+   - Extract encoder bottleneck embeddings
+   - Train OC-SVM on bottleneck features
+   - Compare with original OC-SVM and reconstruction method
+
+5) PCA + OC-SVM:
+   - Run PCA on normal data, analyze explained variance
+   - Choose #components (elbow method)
+   - Train OC-SVM on PCA-transformed data
+   - Compare results with AE-based and original OC-SVM models
+
+Task 4: Unsupervised Anomaly Detection and Interpretation
+-----------------------------------------------------------
+
+1) K-means:
+   - Assume 4 clusters (normal + 3 attacks)
+   - Fit K-means on full training data
+
+2) Cluster interpretation:
+   - Analyze cluster sizes and label distributions
+   - Check cluster purity
+   - Compute silhouette per cluster
+   - Q: Which clusters are mixed or have low silhouette?
+
+   - Visualize with t-SNE:
+       i) Plot all data with cluster IDs (try multiple perplexities)
+      ii) Plot with attack labels
+   Q: Compare visualizations; identify misinterpreted points.
+
+3) DB-Scan:
+   - Estimate min_points using K-means results (pure clusters)
+   - Choose ε with elbow rule on distance graph
+   - Cluster training data
+   Q: Does the noise cluster (-1) contain only anomalies?
+
+Reference: https://distill.pub/2016/misread-tsne/
