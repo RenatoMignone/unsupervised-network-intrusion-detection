@@ -1,0 +1,49 @@
+Task 1:
+    Explore the dataset: Before preprocessing the data, explore the data to understand the available features.
+    Q: What are the dataset characteristics? How many categorical and numerical attributes do you have?
+        How are your attack labels and binary label distributed?
+    R: categorical features = protocol_type, service, flag 
+
+    urgent, num_outbouhnd_cmds, is_host_login col to drop
+    
+    Preprocessing: Preprocess your features before performing any AI/ML algorithms.
+    Q: How do you preprocess categorical and numerical data?
+    R: we use one hot encoder, and we group less frequent classes into 'other' for each categorical feature
+
+
+    Study your data from a domain expert perspective
+    Q: Looking at the different heatmaps, do you find any main characteristics that are
+        strongly correlated with a specific attack?
+    R: hot and is_guest_login have high values for the r2l attack, in the mean heatmap,
+        (read what is this type of attack to collerate these values to the attack)
+        hot is the number of “hot indicators” in the connection. They refer to suspicious commands or access patterns in the connection’s content that indicate an attack or intrusion attempt.
+        Examples include:
+            Accessing sensitive files (like /etc/passwd)
+            Executing system commands
+            Using admin-level or shell commands within a session
+        In general, patterns typical of Remote-to-Local (R2L) or User-to-Root (U2R) attacks
+        A probe attack tries to discover the network’s structure, open ports, and vulnerabilities, usually as a precursor to a more serious intrusion.
+        The attacker doesn’t yet exploit the system — they’re exploring it.
+
+Task 2:
+    One-Class SVM with Normal data only.
+    Q: Considering that you are currently training only on normal data, which is a good
+        estimate for the parameter nu2? What is the impact on training performance? Try both
+        your estimate and the default value of nu.
+    R: Look at the notebook. With the default value (0.5) is quite bad
+
+    One-Class SVM with All data
+    Q: Which model performs better? Why do you think that?
+    R: 
+
+    One-Class SVM with normal traffic and some anomalies
+    Q: Plot the f1-macro score for each scenario. How does the increasing ratio of anomalies
+        affect the results?
+    R:
+
+
+    Robustness of the One-Class SVM model
+    Q: Is the best-performing model in the training set also the best here? Does it confuse
+        normal data with anomalies? Which attack is the most confused?
+    R:
+    
