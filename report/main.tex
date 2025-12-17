@@ -20,11 +20,8 @@
 \usepackage{multirow}
 \usepackage{booktabs}
 
-\usepackage{cleveref}
-\crefformat{section}{#2\S#1#3}
-\Crefname{figure}{Fig.}{Fig.}
-
 \usepackage{graphicx}
+\usepackage{float}
 \usepackage{pgfplots}
 \usepackage{pgfplotstable}
 \pgfplotsset{compat=1.16}
@@ -35,6 +32,11 @@
 \usepackage{csvsimple}
 
 \usepackage{tablefootnote}
+
+\usepackage[hidelinks]{hyperref}
+\usepackage{cleveref}
+\crefformat{section}{#2\S#1#3}
+\Crefname{figure}{Fig.}{Fig.}
 
 \newcommand{\placeholder}{\textcolor{red}{[PLACEHOLDER]~}}
 \newcommand{\todo}{\textcolor{red}{[TODO]:~}}
@@ -56,6 +58,12 @@ Anomaly Detection\\Group 2}
 \begin{document}
 
 \maketitle
+\renewcommand{\abstractname}{\vspace{-\baselineskip}}
+\vspace{-15pt}
+\begin{abstract}
+\noindent The goal of this project is to apply shallow and deep learning methods for anomaly detection and data representation to address the Intrusion Detection Systems (IDS) task. The main objective is to evaluate whether unsupervised algorithms can automatically detect anomalous patterns and to analyze how their performance evolves as our knowledge of the data increase.
+\end{abstract}
+
 
 \input{sections/Task1.tex}
 \input{sections/Task2.tex}

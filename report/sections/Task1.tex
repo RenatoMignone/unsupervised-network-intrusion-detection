@@ -1,1 +1,20 @@
 \section{Dataset Characterization and Preprocessing}
+\subsection{Dataset Characterization}
+\paragraph{Dataset exploration}
+The training dataset (extracted from \texttt{train.json}) contains 18831 rows, while the test dataset (from \texttt{test.json}) 5826. Both datasets are characterized by 43 columns, of which 41 features and 2 labels. There are three main types of features: basic ones (connection duration, protocol type, service, status flags, \dots),  content ones (about the packets' payload) and traffic ones (summarizing network level statistics). The last two columns are the \texttt{label}, indicating the attack type, and \texttt{binary\_label}, telling whether the flow is flagged as anomalous or not.
+
+\paragraph{Categorical and numerical features} Among the 41 features, only 3 are categorical: \texttt{protocol\_type}, \texttt{service}, \texttt{flag}. Hence, there are 38 numerical features: three of them have always value 0 (\texttt{urgent}, \texttt{num\_outbouhnd\_cmds}, \texttt{is\_host\_login}) and five are binary (\texttt{land}, \texttt{logged\_in}, \texttt{root\_shell}, \texttt{num\_shell}, \texttt{is\_guest\_login}).
+
+\paragraph{Label distribution} \Cref{fig:task1_label_distribution} shows the distribution of the labels and binary labels in the training dataset. The majority of the samples is identified as benign. The \SI{28.6}{\percent} of samples is malign, and they are split between three different attacks: DoS (\SI{15.5}{\percent}), Probe (\SI{12.2}{\percent}) and R2L (\SI{1.0}{\percent}).
+
+\begin{figure}
+	\centering
+    \subfloat[][{Label distribution.}]
+	{\includegraphics[width=.4\linewidth]{img/Task1/task1_class_distribution_pie_label.png}} \quad
+	\subfloat[][{Binary label distribution.}]
+	{\includegraphics[width=.48\linewidth]{img/Task1/task1_class_distribution_pie_binary.png}} \\
+  	\caption{Label distribution in the training dataset.}\label{fig:task1_label_distribution}{}
+\end{figure}
+
+\subsection{Preprocessing}
+\subsection{Heatmaps}
