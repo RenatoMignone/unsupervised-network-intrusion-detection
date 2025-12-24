@@ -1,1 +1,66 @@
 \section{Shallow Anomaly Detection - Supervised vs Unsupervised}
+In this section, we explore Shallow Anomaly Detection using One-Class Support Vector Machines (OC-SVM). We compare Novelty Detection (trained on normal data) against Outlier Detection (trained on mixed data), analyzing the impact of the $\nu$ parameter and dataset contamination on detection performance and robustness.
+
+\subsection{One-Class SVM with Normal data only}
+We first trained the OC-SVM on normal traffic only. The parameter $\nu$ controls the fraction of training errors and support vectors. Since our training set is clean, a very small $\nu$ (e.g., $0.00001$ or $0.001$) is appropriate, creating a boundary that encompasses most normal data.
+
+Comparing small values ($\nu=0.00001, 0.001$) with the default $\nu=0.5$:
+\begin{itemize}
+    \item \textbf{Small $\nu$ ($0.00001, 0.001$):} These settings assume that most training data is normal. They yield a broad decision boundary that fits the normal manifold, resulting in high recall for normal traffic. Specifically, while $\nu=0.00001$ creates a very loose boundary minimizing False Positives, we observed that $\nu=0.001$ yields slightly better overall performance (F1-score), offering a better balance between precision and recall.
+    \item \textbf{Large $\nu$ ($0.5$):} Forces \SI{50}{\percent} of data to be outliers, creating a tight boundary with high False Positive rates, making it unsuitable for this clean dataset.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{img/Task2/task2_ocsvm_normal_only_nu_0.001.png}
+    \caption{Confusion matrices for OC-SVM trained on normal data only with $\nu=0.001$.}
+    \label{fig:task2_ocsvm_normal}
+\end{figure}
+
+\subsection{One-Class SVM with All data}
+Next, we trained the OC-SVM on the full training set (normal + anomalies), setting $\nu$ to the anomaly ratio (approximately $0.29$).
+
+Comparing the two approaches, the \textbf{Normal-Only model} (Novelty Detection) generally outperforms the All-Data model (Outlier Detection). The Normal-Only model robustly learns the "normality" concept without influence from specific anomalies. The All-Data model's success depends heavily on $\nu$ matching the exact contamination rate; if anomalies are diverse or overlap with normal patterns, the decision boundary becomes unreliable.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{img/Task2/task2_ocsvm_all_data.png}
+    \caption{Confusion matrices for OC-SVM trained on all data (normal + anomalies).}
+    \label{fig:task2_ocsvm_all}
+\end{figure}
+
+\subsection{One-Class SVM with normal traffic and some anomalies}
+We investigated the effect of training set contamination by varying the anomaly percentage (\SI{0}{\percent} to \SI{100}{\percent}) and adjusting $\nu$ accordingly.
+
+\Cref{fig:task2_f1_scores} illustrates the F1-macro scores. With \SI{0}{\percent} anomalies, the model learns a pure normal boundary. As contamination increases, the model attempts to exclude the specified fraction of data. If anomalies form distinct clusters, this works well; however, overlapping anomalies distort the boundary. The results show that performance degrades or becomes unstable as contamination rises, highlighting the difficulty of defining a boundary in polluted datasets.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{img/Task2/task2_f1_scores_vs_anomaly_percentage.png}
+    \caption{F1-Macro scores vs. percentage of anomalies in the training data.}
+    \label{fig:task2_f1_scores}
+\end{figure}
+
+\subsection{Robustness of the One-Class SVM model}
+Finally, we evaluated robustness on the test set. The model trained on \textbf{clean normal data} generalized best, avoiding overfitting to specific training anomalies.
+
+We observed two main error types: False Positives (normal flagged as anomaly due to tight boundaries) and False Negatives (anomalies missed due to loose boundaries).
+To better understand the model's limitations, we performed a per-attack analysis using the best-performing model (Normal-Only, $\nu=0.001$). As shown in \cref{fig:task2_misclassification}, \textbf{Probe} and \textbf{DoS} attacks are the most frequently confused with normal traffic (high False Negative rate). This is likely because these attacks can exhibit feature signatures (such as connection duration or byte counts) that overlap significantly with legitimate user behavior. In contrast, R2L attacks are generally easier to detect as their patterns diverge more sharply from the norm.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{img/Task2/task2_attack_misclassification_rates.png}
+    \caption{Misclassification rates (False Negative Rate) for different attack types using the best OC-SVM model.}
+    \label{fig:task2_misclassification}
+\end{figure}
+
+\paragraph{Model Performance Comparison}
+To conclude our analysis, we compared the performance of all trained configurations (Normal-Only, All-Data, and Mixed models) on the test set. \Cref{fig:task2_comparison} summarizes the F1-macro scores across training, validation, and test sets.
+The comparison highlights that the \textbf{Normal-Only model with $\nu=0.001$} achieves the best generalization performance. While models trained on mixed data (All-Data and Mixed configurations) can perform reasonably well if $\nu$ is carefully tuned to the contamination rate, they generally exhibit lower stability and performance compared to the model trained on clean data. This reinforces the advantage of Novelty Detection when a clean reference dataset is available.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{img/Task2/task2_model_comparison.png}
+    \caption{Performance comparison of different OC-SVM configurations.}
+    \label{fig:task2_comparison}
+\end{figure}
