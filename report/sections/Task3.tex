@@ -1,1 +1,108 @@
 \section{Deep Anomaly Detection and Data Representation}\label{sec:task3}
+
+\subsection{Autoencoder Architecture and Training}
+
+We implemented an \textit{Improved Autoencoder} designed to handle the mixed nature of our dataset (numerical and categorical features).
+
+\subsubsection{Model Architecture}
+The architecture consists of a symmetric Encoder-Decoder structure:
+\begin{itemize}
+    \item \textbf{Encoder:} It consists of linear layers reducing dimensions from the input size to 128, then 64, and finally to a bottleneck of size 16. Each intermediate layer is followed by Batch Normalization, ReLU activation, and Dropout (0.2) to prevent overfitting.
+    \item \textbf{Decoder:} It mirrors the encoder, expanding dimensions from 16 to 64, 128, and finally back to the original input dimension.
+\end{itemize}
+
+Since the dataset contains both numerical and categorical features (one-hot encoded), we employed a composite loss function. This ensures that the model learns to reconstruct continuous values accurately (via Mean Squared Error) while correctly classifying the categorical attributes (via Cross-Entropy).
+
+The Autoencoder was trained in a semi-supervised manner, using only normal data from the training set. The objective is to learn the manifold of normal traffic patterns. Consequently, the model is expected to reconstruct normal samples well (yielding low error) while failing to accurately reconstruct anomalies (resulting in high error).
+
+\subsection{Hyperparameter Tuning and Model Selection}
+
+We performed a grid search to select the optimal learning rate, testing values in $\{0.01, 0.005, 0.001, 0.0005\}$. The models were trained for 50 epochs, and the best model was selected based on the minimum validation loss observed.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1.0\textwidth]{img/Task3/task3_autoencoder_all_train_val_loss_comparison.png}
+    \caption{Comparison of Training and Validation Loss curves for different learning rates.}
+    \label{fig:task3_loss_curves}
+\end{figure}
+
+As shown in Figure \ref{fig:task3_loss_curves}, the learning rate of $0.001$ provided the most stable convergence and the lowest validation loss, avoiding the instability seen with higher rates ($0.01$) and the slow convergence of lower rates.
+
+\subsection{Reconstruction Error Analysis}
+
+After training, we analyzed the distribution of reconstruction errors across the Validation, Training (full), and Test sets.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.8\textwidth]{img/Task3/task3_ecdf_reconstruction_error_combined.png}
+    \caption{Combined ECDF of Reconstruction Errors for Validation, Training, and Test sets.}
+    \label{fig:task3_ecdf}
+\end{figure}
+Figure \ref{fig:task3_ecdf} presents the Empirical Cumulative Distribution Function (ECDF) of the errors.
+\begin{itemize}
+    \item \textbf{Validation Set (Blue):} Shows the lowest errors, as it consists only of normal data similar to the training set.
+    \item \textbf{Training Set (Purple):} The curve is shifted to the right at the higher percentiles. This is due to the presence of anomalies in the full training set (which were excluded during AE training), which the model fails to reconstruct.
+    \item \textbf{Test Set (Orange):} Shows the highest errors. This indicates the "generalization gap" where the model encounters unseen normal variations and novel attack patterns that were not present in the training set.
+\end{itemize}
+
+\subsubsection{Threshold Selection}
+We selected the anomaly detection threshold using the percentile method on the validation set errors. We set the threshold at the $99.7^{th}$ percentile ($100 - 0.3$), assuming that $99.7\%$ of the validation data is normal. This data-driven approach avoids manual tuning and adapts to the specific reconstruction capabilities of the model.
+
+\subsection{Anomaly Detection Results}
+
+Using the reconstruction error threshold, we classified samples as normal or anomalous. Table \ref{tab:task3_ae_classification} presents the classification performance on training, validation and testing sets.
+
+\begin{table}
+    \centering
+    \begin{tabular}{|l|c|c|c|c|c|c|c|c|c|}
+        \hline
+        \textbf{Class} & \multicolumn{3}{c|}{\textbf{Precision}} & \multicolumn{3}{c|}{\textbf{Recall}} & \multicolumn{3}{c|}{\textbf{F1-Score}} \\
+        \cline{2-10}
+         & \textbf{Train} & \textbf{Val} & \textbf{Test} & \textbf{Train} & \textbf{Val} & \textbf{Test} & \textbf{Train} & \textbf{Val} & \textbf{Test} \\
+        \hline
+        Normal (0) & 0.95 & 0.95 & 0.41 & 0.93 & 0.93 & 0.78 & 0.94 & 0.94 & 0.54 \\
+        Anomaly (1) & 0.84 & 0.84 & 0.73 & 0.89 & 0.88 & 0.35 & 0.86 & 0.86 & 0.47 \\
+        \hline
+        \textbf{Accuracy} & \multicolumn{3}{c|}{0.92} & \multicolumn{3}{c|}{0.92} & \multicolumn{3}{c|}{0.51} \\
+        \hline
+    \end{tabular}
+    \caption{Classification Report for Autoencoder-based Anomaly Detection (Train, Validation, and Test Sets).}
+    \label{tab:task3_ae_classification}
+\end{table}
+
+The results demonstrate that the Autoencoder is an effective anomaly detector, though the trade-off between precision and recall is evident.
+
+\subsection{Latent Space Anomaly Detection (AE + OC-SVM)}
+
+We extracted the 16-dimensional bottleneck representation of the data and trained a One-Class SVM (OC-SVM) on these latent features.
+
+\textbf{Comparison with Original OC-SVM:}
+The AE+OC-SVM approach generally outperforms the OC-SVM trained on raw features (Task 2). The Autoencoder acts as a non-linear filter, compressing the essential information of "normality" into the bottleneck while discarding noise. This results in a cleaner feature space where the OC-SVM can more easily define a boundary enclosing the normal data.
+
+\subsection{PCA-based Anomaly Detection}
+
+Finally, we explored a linear dimensionality reduction technique: Principal Component Analysis (PCA). We selected 22 components to capture approximately \SI{95}{\percent} of the variance and trained an OC-SVM on this reduced space.
+
+
+
+\begin{table}[H]
+    \centering
+    \resizebox{\textwidth}{!}{
+    \begin{tabular}{l|ccc|ccc|ccc|ccc}
+        \hline
+        \textbf{Class} & \multicolumn{3}{c|}{\textbf{Precision}} & \multicolumn{3}{c|}{\textbf{Recall}} & \multicolumn{3}{c|}{\textbf{F1-Score}} & \multicolumn{3}{c}{\textbf{Support}} \\
+        & Train & Val & Test & Train & Val & Test & Train & Val & Test & Train & Val & Test \\
+        \hline
+        0 & 0.91 & 0.90 & 0.63 & 0.99 & 0.99 & 0.75 & 0.95 & 0.94 & 0.68 & 12102 & 1346 & 2152 \\
+        1 & 0.98 & 0.96 & 0.84 & 0.76 & 0.71 & 0.74 & 0.86 & 0.82 & 0.78 & 4845 & 538 & 3674 \\
+        \hline
+        \textbf{Accuracy} & & & & & & & 0.93 & 0.91 & 0.74 & 16947 & 1884 & 5826 \\
+        \hline
+    \end{tabular}
+    }
+    \caption{Classification Report for OC-SVM trained on PCA-reduced features.}
+    \label{tab:task3_pca_classification}
+\end{table}
+
+\textbf{Comparison (PCA vs. AE):}
+Table \ref{tab:task3_pca_classification} shows the results for the PCA-based model. While PCA provides a strong baseline, the Autoencoder-based approaches (both Reconstruction Error and Bottleneck+OCSVM) typically yield better performance. This suggests that the manifold of normal network traffic is non-linear. PCA, being a linear method, cannot capture the complex non-linear relationships between features as effectively as the deep Autoencoder, leading to a less precise separation between normal and anomalous traffic.
