@@ -31,7 +31,7 @@ Comparing small values ($\nu=0.00001, 0.001$) with the default $\nu=0.5$:
 
 \subsection{One-Class SVM with All data}
 Next, we trained the OC-SVM on the full training set (normal + anomalies), setting $\nu$ to the anomaly ratio (approximately $0.29$).
-Comparing the two approaches, the Normal-Only model (Novelty Detection) generally outperforms the All-Data model (Outlier Detection). The Normal-Only model robustly learns the "normality" concept without influence from specific anomalies. The All-Data model's success depends heavily on $\nu$ matching the exact contamination rate; if anomalies are diverse or overlap with normal patterns, the decision boundary becomes unreliable.
+Comparing the two approaches, the Normal-Only model (Novelty Detection) generally outperforms the All-Data model (Outlier Detection). The Normal-Only model robustly learns the ``normality'' concept without influence from specific anomalies. The All-Data model's success depends heavily on $\nu$ matching the exact contamination rate; if anomalies are diverse or overlap with normal patterns, the decision boundary becomes unreliable.
 
 \begin{table}[H]
     \centering

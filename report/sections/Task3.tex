@@ -42,7 +42,7 @@ Figure \ref{fig:task3_ecdf} presents the Empirical Cumulative Distribution Funct
 \begin{itemize}
     \item \textbf{Validation Set (Blue):} Shows the lowest errors, as it consists only of normal data similar to the training set.
     \item \textbf{Training Set (Purple):} The curve is shifted to the right at the higher percentiles. This is due to the presence of anomalies in the full training set (which were excluded during AE training), which the model fails to reconstruct.
-    \item \textbf{Test Set (Orange):} Shows the highest errors. This indicates the "generalization gap" where the model encounters unseen normal variations and novel attack patterns that were not present in the training set.
+    \item \textbf{Test Set (Orange):} Shows the highest errors. This indicates the ``generalization gap'' where the model encounters unseen normal variations and novel attack patterns that were not present in the training set.
 \end{itemize}
 
 \subsubsection{Threshold Selection}
@@ -77,7 +77,7 @@ The results demonstrate that the Autoencoder is an effective anomaly detector, t
 We extracted the 16-dimensional bottleneck representation of the data and trained a One-Class SVM (OC-SVM) on these latent features.
 
 \textbf{Comparison with Original OC-SVM:}
-The AE+OC-SVM approach generally outperforms the OC-SVM trained on raw features (Task 2). The Autoencoder acts as a non-linear filter, compressing the essential information of "normality" into the bottleneck while discarding noise. This results in a cleaner feature space where the OC-SVM can more easily define a boundary enclosing the normal data.
+The AE+OC-SVM approach generally outperforms the OC-SVM trained on raw features (Task 2). The Autoencoder acts as a non-linear filter, compressing the essential information of ``normality'' into the bottleneck while discarding noise. This results in a cleaner feature space where the OC-SVM can more easily define a boundary enclosing the normal data.
 
 \subsection{PCA-based Anomaly Detection}
 
