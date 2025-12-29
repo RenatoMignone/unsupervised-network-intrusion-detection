@@ -17,16 +17,16 @@ The Autoencoder was trained in a semi-supervised manner, using only normal data 
 
 \subsection{Hyperparameter Tuning and Model Selection}
 
-We performed a grid search to select the optimal learning rate, testing values in $\{0.01, 0.005, 0.001, 0.0005\}$. The models were trained for 50 epochs, and the best model was selected based on the minimum validation loss observed.
+We performed a grid search to select the optimal learning rate, testing values in $\{0.01, 0.005, 0.001, 0.0005\}$. The models were trained for up to 50 epochs, and the best model was selected based on the minimum validation loss observed during training. Specifically, for each learning rate, we saved the model state at the epoch with the lowest validation loss (early stopping criterion), preventing overfitting.
 
 \begin{figure}
     \centering
     \includegraphics[width=1.0\textwidth]{img/Task3/task3_autoencoder_all_train_val_loss_comparison.png}
-    \caption{Comparison of Training and Validation Loss curves for different learning rates.}
+    \caption{Training and Validation Loss curves of the Autoencoder during the learning rate grid search. The left panel shows training loss evolution, while the right panel shows validation loss for different learning rates ($lr \in \{0.01, 0.005, 0.001, 0.0005\}$).}
     \label{fig:task3_loss_curves}
 \end{figure}
 
-As shown in Figure \ref{fig:task3_loss_curves}, the learning rate of $0.001$ provided the most stable convergence and the lowest validation loss, avoiding the instability seen with higher rates ($0.01$) and the slow convergence of lower rates.
+As shown in \cref{fig:task3_loss_curves}, the learning rate of $0.001$ provided the most stable convergence and the lowest validation loss, avoiding the instability seen with higher rates ($0.01$).
 
 \subsection{Reconstruction Error Analysis}
 
@@ -38,6 +38,7 @@ After training, we analyzed the distribution of reconstruction errors across the
     \caption{Combined ECDF of Reconstruction Errors for Validation, Training, and Test sets.}
     \label{fig:task3_ecdf}
 \end{figure}
+
 Figure \ref{fig:task3_ecdf} presents the Empirical Cumulative Distribution Function (ECDF) of the errors.
 \begin{itemize}
     \item \textbf{Validation Set (Blue):} Shows the lowest errors, as it consists only of normal data similar to the training set.
@@ -46,62 +47,69 @@ Figure \ref{fig:task3_ecdf} presents the Empirical Cumulative Distribution Funct
 \end{itemize}
 
 \subsubsection{Threshold Selection}
-We selected the anomaly detection threshold using the percentile method on the validation set errors. We set the threshold at the $99.7^{th}$ percentile ($100 - 0.3$), assuming that $99.7\%$ of the validation data is normal. This data-driven approach avoids manual tuning and adapts to the specific reconstruction capabilities of the model.
-
-\subsection{Anomaly Detection Results}
-
-Using the reconstruction error threshold, we classified samples as normal or anomalous. Table \ref{tab:task3_ae_classification} presents the classification performance on training, validation and testing sets.
-
-\begin{table}
-    \centering
-    \begin{tabular}{|l|c|c|c|c|c|c|c|c|c|}
-        \hline
-        \textbf{Class} & \multicolumn{3}{c|}{\textbf{Precision}} & \multicolumn{3}{c|}{\textbf{Recall}} & \multicolumn{3}{c|}{\textbf{F1-Score}} \\
-        \cline{2-10}
-         & \textbf{Train} & \textbf{Val} & \textbf{Test} & \textbf{Train} & \textbf{Val} & \textbf{Test} & \textbf{Train} & \textbf{Val} & \textbf{Test} \\
-        \hline
-        Normal (0) & 0.95 & 0.95 & 0.41 & 0.93 & 0.93 & 0.78 & 0.94 & 0.94 & 0.54 \\
-        Anomaly (1) & 0.84 & 0.84 & 0.73 & 0.89 & 0.88 & 0.35 & 0.86 & 0.86 & 0.47 \\
-        \hline
-        \textbf{Accuracy} & \multicolumn{3}{c|}{0.92} & \multicolumn{3}{c|}{0.92} & \multicolumn{3}{c|}{0.51} \\
-        \hline
-    \end{tabular}
-    \caption{Classification Report for Autoencoder-based Anomaly Detection (Train, Validation, and Test Sets).}
-    \label{tab:task3_ae_classification}
-\end{table}
-
-The results demonstrate that the Autoencoder is an effective anomaly detector, though the trade-off between precision and recall is evident.
+We selected the anomaly detection threshold based on an expected contamination rate. For each dataset, we computed the 70th percentile of the reconstruction errors as the threshold, which corresponds to classifying the top 30\% of samples with highest errors as anomalies. This contamination-aware approach acknowledges that a significant portion of the data may contain anomalous patterns and sets the decision boundary accordingly. Each dataset (training, validation, and test) uses its own 70th percentile as the threshold to account for distributional differences.
 
 \subsection{Latent Space Anomaly Detection (AE + OC-SVM)}
 
-We extracted the 16-dimensional bottleneck representation of the data and trained a One-Class SVM (OC-SVM) on these latent features.
+We extracted the 16-dimensional bottleneck representation of the data and trained a One-Class SVM (OC-SVM) on these latent features. The results are presented in Table \ref{tab:task3_ae_ocsvm_classification}.
+
+\begin{table}
+    \centering
+    \caption{Classification Report for OC-SVM trained on Autoencoder Bottleneck Features.}
+    \label{tab:task3_ae_ocsvm_classification}
+    \begin{tabular}{lccccccccc}
+        \toprule
+        \textbf{Class} & \multicolumn{3}{c}{\textbf{Precision}} & \multicolumn{3}{c}{\textbf{Recall}} & \multicolumn{3}{c}{\textbf{F1-Score}} \\
+        \cmidrule(lr){2-4} \cmidrule(lr){5-7} \cmidrule(lr){8-10}
+         & \textbf{Train} & \textbf{Val} & \textbf{Test} & \textbf{Train} & \textbf{Val} & \textbf{Test} & \textbf{Train} & \textbf{Val} & \textbf{Test} \\
+        \midrule
+        Normal (0) & 0.81 & 0.81 & 0.48 & 0.99 & 0.99 & 0.71 & 0.90 & 0.89 & 0.57 \\
+        Anomaly (1) & 0.97 & 0.93 & 0.76 & 0.43 & 0.43 & 0.54 & 0.60 & 0.59 & 0.63 \\
+        \midrule
+        \textbf{Accuracy} & \multicolumn{3}{c}{0.83} & \multicolumn{3}{c}{0.83} & \multicolumn{3}{c}{0.60} \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\textbf{Performance Analysis:}
+The AE+OC-SVM approach achieves an overall accuracy of \SI{83}{\percent} on training/validation sets and \SI{60}{\percent} on the test set. Notably, the model exhibits high recall for normal traffic (\SI{99}{\percent} on train/val, \SI{71}{\percent} on test) but significantly lower recall for anomalies (\SI{43}{\percent} on train/val, \SI{54}{\percent} on test). This indicates that the OC-SVM boundary in the latent space is conservative, classifying many true anomalies as normal.
+
+However, when the model does predict an anomaly, it is highly confident: precision for anomalies is excellent (\SI{97}{\percent} on train, \SI{93}{\percent} on val, \SI{76}{\percent} on test). This high precision with moderate recall suggests the model is useful for scenarios where false positives are costly, as it produces few false alarms while still detecting over half of the anomalies in the test set.
 
 \textbf{Comparison with Original OC-SVM:}
-The AE+OC-SVM approach generally outperforms the OC-SVM trained on raw features (Task 2). The Autoencoder acts as a non-linear filter, compressing the essential information of ``normality'' into the bottleneck while discarding noise. This results in a cleaner feature space where the OC-SVM can more easily define a boundary enclosing the normal data.
+The AE+OC-SVM approach generally outperforms the OC-SVM trained on raw features (Task 2). The Autoencoder acts as a non-linear feature extractor, compressing the essential information of ``normality'' into the bottleneck while discarding noise. This results in a cleaner, lower-dimensional feature space where the OC-SVM can more effectively define a boundary enclosing the normal data. The 16-dimensional bottleneck provides a more discriminative representation than the original high-dimensional feature space.
 
 \subsection{PCA-based Anomaly Detection}
 
-Finally, we explored a linear dimensionality reduction technique: Principal Component Analysis (PCA). We selected 22 components to capture approximately \SI{95}{\percent} of the variance and trained an OC-SVM on this reduced space.
+Finally, we explored a linear dimensionality reduction technique: Principal Component Analysis (PCA). We analyzed the cumulative explained variance to determine the optimal number of components. As shown in \cref{fig:task3_pca_variance}, we selected 22 components to capture approximately \SI{95}{\percent} of the variance and trained an OC-SVM on this reduced space.
 
-
-
-\begin{table}[H]
+\begin{figure}
     \centering
-    \resizebox{\textwidth}{!}{
-    \begin{tabular}{l|ccc|ccc|ccc|ccc}
-        \hline
-        \textbf{Class} & \multicolumn{3}{c|}{\textbf{Precision}} & \multicolumn{3}{c|}{\textbf{Recall}} & \multicolumn{3}{c|}{\textbf{F1-Score}} & \multicolumn{3}{c}{\textbf{Support}} \\
-        & Train & Val & Test & Train & Val & Test & Train & Val & Test & Train & Val & Test \\
-        \hline
-        0 & 0.91 & 0.90 & 0.63 & 0.99 & 0.99 & 0.75 & 0.95 & 0.94 & 0.68 & 12102 & 1346 & 2152 \\
-        1 & 0.98 & 0.96 & 0.84 & 0.76 & 0.71 & 0.74 & 0.86 & 0.82 & 0.78 & 4845 & 538 & 3674 \\
-        \hline
-        \textbf{Accuracy} & & & & & & & 0.93 & 0.91 & 0.74 & 16947 & 1884 & 5826 \\
-        \hline
-    \end{tabular}
-    }
+    \includegraphics[width=0.7\textwidth]{img/Task3/task3_pca_explained_variance.png}
+    \caption{Cumulative Explained Variance by PCA Components.}
+    \label{fig:task3_pca_variance}
+\end{figure}
+
+
+
+\begin{table}
+    \centering
     \caption{Classification Report for OC-SVM trained on PCA-reduced features.}
     \label{tab:task3_pca_classification}
+    \resizebox{\textwidth}{!}{
+    \begin{tabular}{lcccccccccccc}
+        \toprule
+        \textbf{Class} & \multicolumn{3}{c}{\textbf{Precision}} & \multicolumn{3}{c}{\textbf{Recall}} & \multicolumn{3}{c}{\textbf{F1-Score}} & \multicolumn{3}{c}{\textbf{Support}} \\
+        \cmidrule(lr){2-4} \cmidrule(lr){5-7} \cmidrule(lr){8-10} \cmidrule(lr){11-13}
+        & \textbf{Train} & \textbf{Val} & \textbf{Test} & \textbf{Train} & \textbf{Val} & \textbf{Test} & \textbf{Train} & \textbf{Val} & \textbf{Test} & \textbf{Train} & \textbf{Val} & \textbf{Test} \\
+        \midrule
+        Normal (0) & 0.90 & 0.88 & 0.61 & 0.99 & 0.99 & 0.80 & 0.94 & 0.93 & 0.69 & 12102 & 1346 & 2152 \\
+        Anomaly (1) & 0.97 & 0.95 & 0.86 & 0.71 & 0.66 & 0.71 & 0.82 & 0.78 & 0.77 & 4845 & 538 & 3674 \\
+        \midrule
+        \textbf{Accuracy} & \multicolumn{3}{c}{-} & \multicolumn{3}{c}{-} & 0.91 & 0.89 & 0.74 & 16947 & 1884 & 5826 \\
+        \bottomrule
+    \end{tabular}
+    }
 \end{table}
 
 \textbf{Comparison (PCA vs. AE):}
