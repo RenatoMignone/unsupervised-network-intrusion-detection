@@ -17,12 +17,12 @@ The performance on all training data of the most relevant cases are summarized i
 \label{tab:task2_ocsvm_normal}
 \begin{tabular}{llcccc}
 \toprule
-{$\nu$} & {Class} & {Precision} & {Recall} & {F1 score} & {Accuracy} \\
+{\textbf{$\nu$}} & {\textbf{Class}} & {\textbf{Precision}} & {\textbf{Recall}} & {\textbf{F1 score}} & {\textbf{Accuracy}} \\
 \midrule
 \multirow{2}{7em}{$\nu = 0.00001$} & Normal (0) & 0.93 	& 0.92 	& 0.92 	& \multirow{2}{2em}{0.89} 	\\
 & Anomaly (1) & 0.80 	& 0.83 	& 0.82 	\\ \midrule
 \multirow{2}{7em}{$\nu = 0.001$} & Normal (0) & 0.91 	& 0.99 	& 0.95 	& \multirow{2}{2em}{0.93} 	\\
-& Anomaly (1) & 0.98 	& 0.76 	& 0.56 	 	\\ \midrule
+& Anomaly (1) & 0.98 	& 0.76 	& 0.87 	 	\\ \midrule
 \multirow{2}{7em}{$\nu = 0.5$}	& Normal (0) & 0.99 	& 0.50 	& 0.66 	& \multirow{2}{2em}{0.64} 	\\
 & Anomaly (1) & 0.44 	& 0.99 	& 0.61  	\\
 \bottomrule
@@ -42,7 +42,7 @@ Comparing the two approaches, the Normal-Only model (Novelty Detection) signific
 \label{tab:task2_ocsvm_all}
 \begin{tabular}{lcccc}
 \toprule
-{Class} & {Precision} & {Recall} & {F1 score} & {Accuracy} \\
+{\textbf{Class}} & {\textbf{Precision}} & {\textbf{Recall}} & {\textbf{F1 score}} & {\textbf{Accuracy}} \\
 \midrule
 Normal (0) & 0.85 	& 0.85 	& 0.85 	& \multirow{2}{2em}{0.79} 	\\
 Anomaly (1) & 0.63 	& 0.63 	& 0.63 	\\
@@ -75,11 +75,11 @@ To better understand the model's limitations, we performed a per-attack analysis
 \centering
 \caption{Performance comparison on training and test set of the models OC-SVM trained with different percentages of anomalies.}
 \label{tab:task2_model_comparison}
-\begin{tabular}{llccc}
+\begin{tabular}{lcccc}
 \toprule
-{Model} & {Accuracy$_{train}$} & {Accuracy$_{test}$} & {Macro F1 score$_{train}$} & {Macro F1 score$_{test}$} \\
+{\textbf{Model}} & {\textbf{Accuracy$_{train}$}} & {\textbf{Accuracy$_{test}$}} & {\textbf{Macro F1 score$_{train}$}} & {\textbf{Macro F1 score$_{test}$}} \\
 \midrule
-Normal-Only & 0.93 & 0.74 	& 0.90 	& 0.73 	\\
+Normal-Only & 0.93 & 0.74 	& 0.91 	& 0.73 	\\
 All-Data & 0.79 & 0.67 	& 0.74 	& 0.65 	\\
 Mixed (\SI{10}{\percent} anomalies)	& 0.77 & 0.46 	& 0.63 	& 0.45 	\\
 \bottomrule

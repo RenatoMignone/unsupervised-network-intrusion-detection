@@ -1,12 +1,12 @@
 \section{Unsupervised Anomaly Detection and Interpretation}
-Finally, we use two totally unsupervised clustering algorithms: K-Means and DB-Scan.
+In this section, we use two totally unsupervised clustering algorithms: K-Means and DB-Scan. Hence, attack labels are used only for post-hoc evaluation and are not used in the clusters' creation.
 
 \subsection{K-Means}\label{sec:kmeans}
 First, we fit K-Means with 4 clusters using the full training data.
 
-\paragraph{Clusters analysis} \Cref{fig:kmeans_attack_distribution} shows the obtained clusters and their composition. Clusters have different sizes: cluster 0 is the biggest one (10647 samples), followed by cluster 2 (4472 samples), while cluster 1 and 3 have almost the same size (1782 and 1930 samples, respectively). Clusters are not pure, but generally each one has a predominant class. Clusters 0 and 2 are mainly composed by \texttt{normal} samples, while cluster 1 almost contains only \texttt{dos} samples. Cluster 3, instead, is composed by 1036 \texttt{probe} samples, 551 \texttt{normal} and 343 \texttt{dos} ones. From this analysis, we infer that K-Means fails to properly separate the different attacks, probably because they have common characteristics.
+\paragraph{Clusters analysis} \Cref{fig:kmeans_attack_distribution} shows the obtained clusters and their composition. Clusters have different sizes: cluster 0 is the biggest one (10647 samples), followed by cluster 2 (4472 samples), while cluster 1 and 3 have almost the same size (1782 and 1930 samples, respectively). Clusters are not pure, but generally each one has a predominant class. Clusters 0 and 2 are mainly composed of \texttt{normal} samples, while cluster 1 almost contains only \texttt{dos} samples. Cluster 3, instead, is composed of 1036 \texttt{probe} samples, 551 \texttt{normal} and 343 \texttt{dos} ones. From this analysis, we infer that K-Means fails to properly separate the different attacks, probably because they have common characteristics.
 
-\paragraph{Silhouette analysis} \Cref{fig:kmeans_silhouette} shows the silhouette scores for the obtained clusters. The points in cluster 1 have the highest silhouette, with an average score of \num{0.737}: \SI{93}{\percent} of its samples is labelled as \texttt{dos}, and these points are well-matched to their own cluster and poorly matched to neighboring clusters. Cluster 0 and 3 have an average silhouette of \num{0.48} and \num{0.25} respectively, indicating that their points are not very cohesive and separated from the ones of the other clusters. In fact, they both contain samples belonging to different attack labels: cluster 0 contains all types of attacks, while in cluster 3 only \texttt{r2l} samples are not present. Finally, cluster 2 has the lowest average silhouette (\num{-0.08}), which indicates a very weak clustering: 3671 samples (\SI{76.4}{\percent}) have a silhouette lower than zero, implying that they have probably been assigned to the wrong cluster, as a different one is more similar. As mentioned in the previous paragraph, cluster 2 is composed by  \texttt{normal} (3339), \texttt{dos} (717), \texttt{probe} (357) and \texttt{r2l} (59) samples.
+\paragraph{Silhouette analysis} \Cref{fig:kmeans_silhouette} shows the silhouette scores for the obtained clusters. The points in cluster 1 have the highest silhouette, with an average score of \num{0.737}: \SI{93}{\percent} of its samples is labelled as \texttt{dos}, and these points are well-matched to their own cluster and poorly matched to neighboring clusters. Cluster 0 and 3 have an average silhouette of \num{0.48} and \num{0.25} respectively, indicating that their points are not very cohesive and separated from the ones of the other clusters. In fact, they both contain samples belonging to different attack labels: cluster 0 contains all types of attacks, while in cluster 3 only \texttt{r2l} samples are not present. Finally, cluster 2 has the lowest average silhouette (\num{-0.08}), which indicates a very weak clustering: 3671 samples (\SI{76.4}{\percent}) have a silhouette lower than zero, implying that they have probably been assigned to the wrong cluster, as a different one is more similar. As mentioned in the previous paragraph, cluster 2 is composed of  \texttt{normal} (3339), \texttt{dos} (717), \texttt{probe} (357) and \texttt{r2l} (59) samples.
 
 \begin{figure}
 	\centering
@@ -46,7 +46,7 @@ Finally, we used DB-Scan, a clustering algorithm designed to detect anomalous pa
 \label{tab:task4_dbscan_clusters}
 \begin{tabular}{ccccc}
 \toprule
-{Attack Label} & {Noise Cluster} & {Cluster 0} & {Cluster 1} & {Cluster 2} \\
+{\textbf{Attack Label}} & {\textbf{Noise Cluster}} & {\textbf{Cluster 0}} & {\textbf{Cluster 1}} & {\textbf{Cluster 2}} \\
 \midrule
 Normal 	& 2736 	& 67 	& 9389 	& 1256 	\\
 DoS 	& 586 	& 1657 	& 193 	& 477 	\\
