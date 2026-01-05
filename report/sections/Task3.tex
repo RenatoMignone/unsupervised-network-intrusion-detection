@@ -1,5 +1,4 @@
 \section{Deep Anomaly Detection and Data Representation}\label{sec:task3}
-
 \subsection{Autoencoder Architecture and Training}
 
 We implemented an \textit{Improved Autoencoder} designed to handle the mixed nature of our dataset (numerical and categorical features).
@@ -7,7 +6,7 @@ We implemented an \textit{Improved Autoencoder} designed to handle the mixed nat
 \subsubsection{Model Architecture}
 The architecture consists of a symmetric Encoder-Decoder structure:
 \begin{itemize}
-    \item \textbf{Encoder:} It consists of linear layers reducing dimensions from the input size to 128, then 64, and finally to a bottleneck of size 16. Each intermediate layer is followed by Batch Normalization, ReLU activation, and Dropout (0.2) to prevent overfitting.
+    \item \textbf{Encoder:} It consists of linear layers expanding dimensions from the input size to 128, and then reducing them to 64, and finally to a bottleneck of size 16. Each intermediate layer is followed by Batch Normalization, ReLU activation, and Dropout (0.2) to prevent overfitting.
     \item \textbf{Decoder:} It mirrors the encoder, expanding dimensions from 16 to 64, 128, and finally back to the original input dimension.
 \end{itemize}
 
@@ -15,22 +14,29 @@ Since the dataset contains both numerical and categorical features (one-hot enco
 
 The Autoencoder was trained in a semi-supervised manner, using only normal data from the training set. The objective is to learn the manifold of normal traffic patterns. Consequently, the model is expected to reconstruct normal samples well (yielding low error) while failing to accurately reconstruct anomalies (resulting in high error).
 
-\subsection{Hyperparameter Tuning and Model Selection}
-
-We performed a grid search to select the optimal learning rate, testing values in $\{0.01, 0.005, 0.001, 0.0005\}$. The models were trained for up to 50 epochs, and the best model was selected based on the minimum validation loss observed during training. Specifically, for each learning rate, we saved the model state at the epoch with the lowest validation loss (early stopping criterion), preventing overfitting.
-
 \begin{figure}
-    \centering
-    \includegraphics[width=1.0\textwidth]{img/Task3/task3_autoencoder_all_train_val_loss_comparison.png}
-    \caption{Training and Validation Loss curves of the Autoencoder during the learning rate grid search. The left panel shows training loss evolution, while the right panel shows validation loss for different learning rates ($lr \in \{0.01, 0.005, 0.001, 0.0005\}$).}
-    \label{fig:task3_loss_curves}
+	\centering
+	\subfloat[][{Loss curve on training set.}\label{fig:task3_train_curve}]
+	{\includegraphics[width=.47\linewidth]{img/Task3/task3_autoencoder_all_train_loss.png}} \quad
+	\subfloat[][{Loss curve on validation set.}\label{fig:task3_val_curve}]
+	{\includegraphics[width=.47\linewidth]{img/Task3/task3_autoencoder_all_val_loss.png}} \\
+  	\caption{Training and Validation Loss curves of the Autoencoder during the learning rate grid search ($lr \in \{0.005, 0.001, 0.0005, 0.0001\}$).}{}\label{fig:task3_loss_curves}
 \end{figure}
 
-As shown in \cref{fig:task3_loss_curves}, the learning rate of $0.001$ provided the most stable convergence and the lowest validation loss, avoiding the instability seen with higher rates ($0.01$).
+\subsection{Hyperparameter Tuning and Model Selection}
+We performed a grid search to select the optimal learning rate, testing values in \{\num{0.005}, \num{0.001}, \num{0.0005}, \num{0.0001}\}. The models were trained for up to 100 epochs: the trends of training and validation losses are shown in \cref{fig:task3_loss_curves}. The best model was selected based on the minimum validation loss observed during training, leveraging the train-validation split performed in \cref{sec:task1}. The learning rate of $0.001$ provided the most stable convergence and the lowest validation loss, avoiding the instability seen with higher rates (e.g., $0.005$) or the slow convergence obtained with lower rates. For the final model, we chose 30 as number of epochs, since the validation loss reaches the lowest value around that epoch, and then stabilizes.
+
 
 \subsection{Reconstruction Error Analysis}
 
 After training, we analyzed the distribution of reconstruction errors across the Validation, Training (full), and Test sets.
+
+\Cref{fig:task3_ecdf} presents the Empirical Cumulative Distribution Function (ECDF) of the errors.
+\begin{itemize}
+    \item \textbf{Validation Set (Blue):} Shows the lowest errors, as it consists data similar to the training set.
+    \item \textbf{Training Set (Purple):} The curve is shifted to the right at the higher percentiles. This is due to the presence of anomalies in the full training set (which were excluded during AE training), which the model fails to reconstruct.
+    \item \textbf{Test Set (Orange):} Shows the highest errors. This indicates the ``generalization gap'' where the model encounters unseen normal variations and novel attack patterns that were not present in the training set.
+\end{itemize}
 
 \begin{figure}
     \centering
@@ -39,15 +45,8 @@ After training, we analyzed the distribution of reconstruction errors across the
     \label{fig:task3_ecdf}
 \end{figure}
 
-Figure \ref{fig:task3_ecdf} presents the Empirical Cumulative Distribution Function (ECDF) of the errors.
-\begin{itemize}
-    \item \textbf{Validation Set (Blue):} Shows the lowest errors, as it consists only of normal data similar to the training set.
-    \item \textbf{Training Set (Purple):} The curve is shifted to the right at the higher percentiles. This is due to the presence of anomalies in the full training set (which were excluded during AE training), which the model fails to reconstruct.
-    \item \textbf{Test Set (Orange):} Shows the highest errors. This indicates the ``generalization gap'' where the model encounters unseen normal variations and novel attack patterns that were not present in the training set.
-\end{itemize}
-
 \subsubsection{Threshold Selection}
-We selected the anomaly detection threshold based on an expected contamination rate. For each dataset, we computed the 70th percentile of the reconstruction errors as the threshold, which corresponds to classifying the top 30\% of samples with highest errors as anomalies. This contamination-aware approach acknowledges that a significant portion of the data may contain anomalous patterns and sets the decision boundary accordingly. Each dataset (training, validation, and test) uses its own 70th percentile as the threshold to account for distributional differences.
+We selected the anomaly detection threshold based on an expected contamination rate. For each dataset, we computed the 70th percentile of the reconstruction errors as the threshold, which corresponds to classifying the top \SI{30}{\percent} of samples with highest errors as anomalies. This contamination-aware approach acknowledges that a significant portion of the data may contain anomalous patterns and sets the decision boundary accordingly. Each dataset (training, validation, and test) uses its own 70th percentile as the threshold to account for distributional differences.
 
 \subsection{Latent Space Anomaly Detection (AE + OC-SVM)}
 
@@ -74,7 +73,7 @@ We extracted the 16-dimensional bottleneck representation of the data and traine
 \textbf{Performance Analysis:}
 The AE+OC-SVM approach achieves an overall accuracy of \SI{83}{\percent} on training/validation sets and \SI{60}{\percent} on the test set. Notably, the model exhibits high recall for normal traffic (\SI{99}{\percent} on train/val, \SI{71}{\percent} on test) but significantly lower recall for anomalies (\SI{43}{\percent} on train/val, \SI{54}{\percent} on test). This indicates that the OC-SVM boundary in the latent space is conservative, classifying many true anomalies as normal.
 
-However, when the model does predict an anomaly, it is highly confident: precision for anomalies is excellent (\SI{97}{\percent} on train, \SI{93}{\percent} on val, \SI{76}{\percent} on test). This high precision with moderate recall suggests the model is useful for scenarios where false positives are costly, as it produces few false alarms while still detecting over half of the anomalies in the test set.
+However, when the model does predict an anomaly, it is highly confident: precision for anomalies is good (\SI{97}{\percent} on train, \SI{93}{\percent} on val, \SI{76}{\percent} on test). This high precision with moderate recall suggests the model is useful for scenarios where false positives are costly, as it produces few false alarms while still detecting over half of the anomalies in the test set.
 
 \textbf{Comparison with Original OC-SVM:}
 The AE+OC-SVM approach generally outperforms the OC-SVM trained on raw features (Task 2). The Autoencoder acts as a non-linear feature extractor, compressing the essential information of ``normality'' into the bottleneck while discarding noise. This results in a cleaner, lower-dimensional feature space where the OC-SVM can more effectively define a boundary enclosing the normal data. The 16-dimensional bottleneck provides a more discriminative representation than the original high-dimensional feature space.

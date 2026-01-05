@@ -1,132 +1,87 @@
 \section{Shallow Anomaly Detection - Supervised vs Unsupervised}
 In this section, we explore Shallow Anomaly Detection using One-Class Support Vector Machines (OC-SVM). We compare Novelty Detection (trained on normal data) against Outlier Detection (trained on mixed data), analyzing the impact of the $\nu$ parameter and dataset contamination on detection performance and robustness.
 
-\subsection{One-Class SVM with Normal data only}
-We first trained the OC-SVM on normal traffic only. The parameter $\nu$ controls the fraction of training errors and support vectors. Since our training set is clean, a very small $\nu$ (e.g., $0.00001$ or $0.001$) is appropriate, creating a boundary that encompasses most normal data.
+\subsection{One-Class SVM with Normal data only}\label{sec:normal_only}
+We first trained the OC-SVM on normal traffic only. The parameter $\nu$ controls the fraction of training errors and support vectors. Since our training set is clean, a small $\nu$ is appropriate, creating a boundary that encompasses most normal data. We experimented different values ($0.00001$, \num{0.0001}, \num{0.001} and \num{0.01}), comparing them with the default value (\num{0.5}).
 
-Comparing small values ($\nu=0.00001, \nu=0.001$) with the default $\nu=0.5$ on the whole training set, as shown in \cref{tab:task2_ocsvm_normal}:
+The performance on all training data of the most relevant cases are summarized in \cref{tab:task2_ocsvm_normal}:
 \begin{itemize}
-    \item \textbf{Small $\nu$ ($0.00001, 0.001$):} These settings assume that most training data is normal. They yield a broad decision boundary that fits the normal manifold, resulting in high recall for normal traffic. Specifically, while $\nu=0.00001$ creates a very loose boundary minimizing False Positives, we observed that $\nu=0.001$ yields slightly better overall performance (F1-score), offering a better balance between precision and recall.
-    \item \textbf{Large $\nu$ ($0.5$):} Forces \SI{50}{\percent} of data to be outliers, creating a tight boundary with high False Positive rates, making it unsuitable for this clean dataset.
+    \item \textbf{Small $\nu$ ($0.00001, 0.001$):} These settings assume that most training data is normal. They yield a broad decision boundary that fits the normal manifold, resulting in high recall for both normal and anomalous traffic. Specifically, while $\nu=0.00001$ creates a very loose boundary minimizing False Positives, we observed that $\nu=0.001$ yields slightly better overall performance (F1-score), offering a better balance between precision and recall among both classes. Moreover, this value is also more reasonable: every 1000 samples, one can fall out of the detected boundary. With  $\nu=0.0001$ and $\nu=0.01$, we obtained results comparable to those observed with $\nu=0.001$: the $\nu$ parameter is not a strict limit, but an upper boundary to the number of anomalies the model expects.
+    \item \textbf{Large $\nu$ ($0.5$):} Forces up to \SI{50}{\percent} of data to be outliers, creating a tight boundary with high False Positive rates, making it unsuitable for this clean dataset.
 \end{itemize}
 
 \begin{table}
-    \centering
-    \caption{Classification Report for OC-SVM trained on normal data only with $\nu=0.001$.}
-    \label{tab:task2_ocsvm_normal}
-    \resizebox{\textwidth}{!}{
-    \begin{tabular}{lcccccccccccc}
-        \toprule
-        \textbf{Class} & \multicolumn{3}{c}{\textbf{Precision}} & \multicolumn{3}{c}{\textbf{Recall}} & \multicolumn{3}{c}{\textbf{F1-Score}} & \multicolumn{3}{c}{\textbf{Support}} \\
-        \cmidrule(lr){2-4} \cmidrule(lr){5-7} \cmidrule(lr){8-10} \cmidrule(lr){11-13}
-        & \textbf{Train} & \textbf{Val} & \textbf{Test} & \textbf{Train} & \textbf{Val} & \textbf{Test} & \textbf{Train} & \textbf{Val} & \textbf{Test} & \textbf{Train} & \textbf{Val} & \textbf{Test} \\
-        \midrule
-        Normal (0) & 0.91 & 0.90 & 0.63 & 0.99 & 0.99 & 0.75 & 0.95 & 0.94 & 0.68 & 12102 & 1346 & 2152 \\
-        Anomaly (1) & 0.98 & 0.96 & 0.84 & 0.76 & 0.71 & 0.74 & 0.86 & 0.82 & 0.78 & 4845 & 538 & 3674 \\
-        \midrule
-        \textbf{Accuracy} & \multicolumn{3}{c}{-} & \multicolumn{3}{c}{-} & 0.93 & 0.91 & 0.74 & 16947 & 1884 & 5826 \\
-        \bottomrule
-    \end{tabular}
-    }
+\small
+\centering
+\caption{Performance on the full training set of OC-SVM trained on normal data only. }
+\label{tab:task2_ocsvm_normal}
+\begin{tabular}{llcccc}
+\toprule
+{$\nu$} & {Class} & {Precision} & {Recall} & {F1 score} & {Accuracy} \\
+\midrule
+\multirow{2}{7em}{$\nu = 0.00001$} & Normal (0) & 0.93 	& 0.91 	& 0.92 	& \multirow{2}{2em}{0.89} 	\\
+& Anomaly (1) & 0.80 	& 0.84 	& 0.82 	\\ \midrule
+\multirow{2}{7em}{$\nu = 0.001$} & Normal (0) & 0.91 	& 0.99 	& 0.95 	& \multirow{2}{2em}{0.93} 	\\
+& Anomaly (1) & 0.98 	& 0.76 	& 0.86 	 	\\ \midrule
+\multirow{2}{7em}{$\nu = 0.5$}	& Normal (0) & 0.99 	& 0.50 	& 0.66 	& \multirow{2}{2em}{0.64} 	\\
+& Anomaly (1) & 0.44 	& 0.99 	& 0.61  	\\
+\bottomrule
+\end{tabular}
 \end{table}
 
 \subsection{One-Class SVM with All data}
-Next, we trained the OC-SVM on the full training set (normal + anomalies), setting $\nu$ to the anomaly ratio (approximately $0.29$).
-Comparing the two approaches, the Normal-Only model (Novelty Detection) significantly outperforms the All-Data model (Outlier Detection), as shown in \cref{tab:task2_ocsvm_all}. The All-Data model achieves only $0.65$ accuracy on the test set compared to $0.74$ for the Normal-Only model with $\nu=0.001$. This performance gap is explained by the fact that the Normal-Only model robustly learns the ``normality'' concept without influence from specific anomalies, while the All-Data model struggles with class imbalance, achieving very low recall ($0.08$) for normal traffic in test set. The All-Data model's success depends heavily on $\nu$ matching the correct contamination rate; when anomalies are diverse or overlap with normal patterns, the decision boundary becomes unreliable.
+Next, we trained the OC-SVM on the full training set (normal + anomalies), setting $\nu$ to the anomaly ratio ($\approx 0.29$), obtained by dividing the total number of anomalies (4845) by the total number of samples (16947) in the training set.
+Comparing the two approaches, the Normal-Only model (Novelty Detection) significantly outperforms the All-Data model (Outlier Detection), as shown in \cref{tab:task2_ocsvm_all}. The All-Data model achieves only \num{0.64} accuracy on the entire training set compared to \num{0.93} for the Normal-Only model with $\nu=0.001$. This performance gap is explained by the fact that the Normal-Only model robustly learns the ``normality'' concept without influence from specific anomalies, while the All-Data model struggles with class imbalance, achieving lower precision and recall ($0.63$) for anomalous traffic.
+
+%The All-Data model's success depends heavily on $\nu$ matching the correct contamination rate; when anomalies are diverse or overlap with normal patterns, the decision boundary becomes unreliable.
 
 \begin{table}
-    \centering
-    \caption{Classification Report for OC-SVM trained on all data (normal + anomalies).}
-    \label{tab:task2_ocsvm_all}
-    \resizebox{\textwidth}{!}{
-    \begin{tabular}{lcccccccccccc}
-        \toprule
-        \textbf{Class} & \multicolumn{3}{c}{\textbf{Precision}} & \multicolumn{3}{c}{\textbf{Recall}} & \multicolumn{3}{c}{\textbf{F1-Score}} & \multicolumn{3}{c}{\textbf{Support}} \\
-        \cmidrule(lr){2-4} \cmidrule(lr){5-7} \cmidrule(lr){8-10} \cmidrule(lr){11-13}
-        & \textbf{Train} & \textbf{Val} & \textbf{Test} & \textbf{Train} & \textbf{Val} & \textbf{Test} & \textbf{Train} & \textbf{Val} & \textbf{Test} & \textbf{Train} & \textbf{Val} & \textbf{Test} \\
-        \midrule
-        Normal (0) & 0.99 & 0.99 & 0.76 & 0.50 & 0.50 & 0.08 & 0.66 & 0.67 & 0.15 & 12102 & 1346 & 2152 \\
-        Anomaly (1) & 0.44 & 0.44 & 0.65 & 0.99 & 0.99 & 0.98 & 0.61 & 0.61 & 0.78 & 4845 & 538 & 3674 \\
-        \midrule
-        \textbf{Accuracy} & \multicolumn{3}{c}{-} & \multicolumn{3}{c}{-} & 0.64 & 0.64 & 0.65 & 16947 & 1884 & 5826 \\
-        \bottomrule
-    \end{tabular}
-    }
+\small
+\centering
+\caption{Performance on the full training set of OC-SVM trained  on all data (normal + anomalies).}
+\label{tab:task2_ocsvm_all}
+\begin{tabular}{lcccc}
+\toprule
+{Class} & {Precision} & {Recall} & {F1 score} & {Accuracy} \\
+\midrule
+Normal (0) & 0.85 	& 0.85 	& 0.85 	& \multirow{2}{2em}{0.79} 	\\
+Anomaly (1) & 0.63 	& 0.63 	& 0.63 	\\
+\bottomrule
+\end{tabular}
 \end{table}
 
 \subsection{One-Class SVM with normal traffic and some anomalies}
-We investigated the effect of training set contamination by varying the anomaly percentage (\SI{0}{\percent} to \SI{100}{\percent}) and adjusting $\nu$ accordingly, computed as the number of considered anomalies divided by the total amount of data.
+We investigated the effect of training set contamination by varying the anomaly percentage (\SI{0}{\percent}, \SI{10}{\percent}, \SI{20}{\percent}, \SI{50}{\percent}, and \SI{100}{\percent}), adjusting $\nu$ accordingly. This parameter was computed as the number of considered anomalies divided by the total amount of samples. For the Normal-Only model (\SI{0}{\percent} of anomalies), we used the $\nu$ parameter estimated in \cref{sec:normal_only} (\num{0.001}).
 
-\Cref{fig:task2_f1_scores} shows the F1-macro scores for different contamination levels. With \SI{0}{\percent} anomalies, the model learns a pure normal boundary and achieves the best test performance ($0.80$). Introducing \SI{10}{\percent} contamination causes a sharp drop to $0.47$, as the model struggles to define an appropriate boundary when exposed to a small number of diverse anomaly patterns. Interestingly, as contamination increases further (\SI{20}{\percent}, \SI{50}{\percent}, \SI{100}{\percent}), performance gradually improves ($0.53 \rightarrow 0.61 \rightarrow 0.65$), suggesting that with sufficient anomaly exposure, the model begins to learn more robust boundaries. However, even at \SI{100}{\percent} contamination (equivalent to the All-Data approach), performance ($0.65$) remains significantly below the clean normal-only model ($0.80$), highlighting that Novelty Detection is superior when clean reference data is available.
+\Cref{fig:task2_f1_scores} shows the F1-macro scores for different contamination levels on the whole training set. With \SI{0}{\percent} anomalies, the model learns a pure normal boundary and achieves the best performance (\num{0.91}). Introducing \SI{10}{\percent} contamination causes a sharp drop to \num{0.63}, as the model struggles to define an appropriate boundary when exposed to a small number of diverse anomaly patterns. Interestingly, as contamination increases further (\SI{20}{\percent}, \SI{50}{\percent}, \SI{100}{\percent}), the macro F1 score gradually improves ($0.67 \rightarrow 0.72 \rightarrow 0.74$), suggesting that with sufficient anomaly exposure, the model begins to learn more robust boundaries. However, even at \SI{100}{\percent} contamination (equivalent to the All-Data approach), the macro F1 score remains significantly below the clean Normal-Only model, highlighting that Novelty Detection is superior when clean reference data is available.
 
 \begin{figure}
     \centering
-    \includegraphics[width=0.8\linewidth]{img/Task2/task2_f1_scores_vs_anomaly_percentage.png}
-    \caption{F1-Macro scores vs. percentage of anomalies in the training data.}
+    \includegraphics[width=0.75\linewidth]{img/Task2/task2_f1_scores_vs_anomaly_percentage_training.png}
+    \caption{F1-Macro scores on the full training data vs. percentage of anomalies in the training data.}
     \label{fig:task2_f1_scores}
 \end{figure}
 
-\begin{comment}
-\begin{table}
-    \centering
-    \caption{F1-Macro scores for different anomaly contamination percentages in training data.}
-    \label{tab:task2_contamination}
-    \begin{tabular}{cccc}
-        \toprule
-        \textbf{Anomaly [\si{\percent}]} & \textbf{Train F1-Macro} & \textbf{Val F1-Macro} & \textbf{Test F1-Macro} \\
-        \midrule
-        \SI{0}{\percent} & 0.88 & 0.86 & 0.80 \\
-        \SI{10}{\percent} & 0.62 & 0.62 & 0.47 \\
-        \SI{20}{\percent} & 0.68 & 0.66 & 0.53 \\
-        \SI{50}{\percent} & 0.72 & 0.71 & 0.61 \\
-        \SI{100}{\percent} & 0.73 & 0.72 & 0.65 \\
-        \bottomrule
-    \end{tabular}
-\end{table}
-\end{comment}
-
 \subsection{Robustness of the One-Class SVM model}
-Finally, we evaluated robustness on the test set. The model trained on clean normal data generalized best, avoiding overfitting to specific training anomalies.
+\paragraph{Performance comparison} Finally, we evaluated robustness on the test set. In particular, we compared the models trained only on normal data ($\nu = 0.001$), on all data ($\nu = 0.29$), and on normal data $+$ \SI{10}{\percent} of anomalies ($\nu = 0.038$). The performance of each model on the training and test set is summarized in \cref{tab:task2_model_comparison}. In the previous sections, we observed that, on the training set, the best performing model is the Normal-Only model. This model demonstrated to be the best one also on the test set, with good generalization and without overfitting to specific training anomalies. In particular, it achieves the best accuracy and macro F1 score in respect to the others. However, the values of these metrics are smaller than those obtained on the training set: data in the test set may exhibit unseen and different characteristics, making the classification more challenging.
 
-We observed two main error types: False Positives (normal flagged as anomaly due to tight boundaries) and False Negatives (anomalies missed due to loose boundaries).
-To better understand the model's limitations, we performed a per-attack analysis using the best-performing model (Normal-Only, $\nu=0.001$). \Cref{tab:task2_per_attack} provides a summary of the model's recall for each attack type in the test set (\texttt{dos} and \texttt{probe}). The analysis reveals that DoS attacks are the most challenging to detect, with a False Negative Rate of $\SI{31}{\percent}$ and a recall of $0.69$. This indicates that approximately one-third of DoS attacks evade detection, likely because some DoS patterns (especially low-rate or distributed attacks) can resemble legitimate high-traffic scenarios, making them difficult to distinguish from normal network behavior. In contrast, Probe attacks are easier to detect, with a lower False Negative Rate of $\SI{15}{\percent}$ and a higher recall of $0.85$. Probe attacks, which involve network scanning and reconnaissance activities, tend to exhibit more distinctive patterns (such as systematic port scanning or unusual connection sequences) that diverge more clearly from normal traffic, making them more identifiable by the model.
+While models trained on mixed data (All-Data and Mixed configurations) can perform reasonably well if $\nu$ is carefully tuned to the contamination rate, they generally exhibit lower stability and performance compared to the model trained on clean data. This reinforces the advantage of Novelty Detection when a clean reference dataset is available. The Normal-Only approach not only achieves better metrics but also demonstrates more consistent behavior across training and test sets, indicating better generalization.
 
-\begin{table}
-    \centering
-    \caption{Per-attack misclassification analysis using the best OC-SVM model (Normal-Only, $\nu=0.001$).}
-    \label{tab:task2_per_attack}
-    \begin{tabular}{lcc}
-        \toprule
-        \textbf{Attack Type} & \textbf{False Negative Rate} & \textbf{Recall} \\
-        \midrule
-        DoS & 0.31 & 0.69 \\
-        Probe & 0.15 & 0.85 \\
-        \bottomrule
-    \end{tabular}
-\end{table}
-
-\paragraph{Model Performance Comparison}
-To conclude our analysis, we compared the performance of all trained configurations (Normal-Only, All-Data, and Mixed models) across training, validation, and test sets. \Cref{tab:task2_model_comparison} presents a comprehensive comparison of F1-Macro scores for all model configurations.
+\paragraph{Anomalies confusion} We observed two main error types: False Positives (normal flagged as anomaly due to tight boundaries) and False Negatives (anomalies missed due to loose boundaries).
+To better understand the model's limitations, we performed a per-attack analysis on the test set (containing samples flagged as \texttt{normal}, \texttt{dos} and \texttt{probe}), using the best-performing model (Normal-Only, $\nu=0.001$). The analysis reveals that DoS attacks are the most challenging to detect: $\SI{31}{\percent}$ have been mislassified as normal traffic. This indicates that approximately one-third of DoS attacks evade detection, likely because some DoS patterns (especially low-rate or distributed attacks) can resemble legitimate high-traffic scenarios, making them difficult to distinguish from normal network behavior. In contrast, Probe attacks are easier to detect, with a lower False Negative Rate ($\SI{15}{\percent}$). Probe attacks, which involve network scanning and reconnaissance activities, tend to exhibit more distinctive patterns (such as systematic port scanning or unusual connection sequences) that diverge more clearly from normal traffic, making them more identifiable by the model.
 
 \begin{table}
-    \centering
-    \caption{OC-SVM Model Performance Comparison Across All Training Configurations.}
-    \label{tab:task2_model_comparison}
-    \begin{tabular}{lccc}
-        \toprule
-        \textbf{Model Configuration} & \textbf{Train F1-Macro} & \textbf{Val F1-Macro} & \textbf{Test F1-Macro} \\
-        \midrule
-        Normal-Only ($\nu=1\text{e-}05$) & 0.88 & 0.86 & 0.80 \\
-        Normal-Only ($\nu=0.001$) & 0.91 & 0.88 & 0.74 \\
-        All-Data ($\nu=0.286$) & 0.74 & 0.72 & 0.65 \\
-        Mixed (\SI{50}{\percent} anomalies) & 0.72 & 0.71 & 0.61 \\
-        Mixed (\SI{20}{\percent} anomalies) & 0.68 & 0.65 & 0.53 \\
-        Mixed (\SI{10}{\percent} anomalies) & 0.63 & 0.62 & 0.47 \\
-        Normal-Only ($\nu=0.5$) & 0.64 & 0.64 & 0.47 \\
-        \bottomrule
-    \end{tabular}
+\small
+\centering
+\caption{Performance comparison on training and test set of the models OC-SVM trained with different percentages of anomalies.}
+\label{tab:task2_model_comparison}
+\begin{tabular}{llccc}
+\toprule
+{Model} & {Accuracy$_{train}$} & {Accuracy$_{test}$} & {Macro F1 score$_{train}$} & {Macro F1 score$_{test}$} \\
+\midrule
+Normal-Only & 0.93 & 0.74 	& 0.90 	& 0.73 	\\
+All-Data & 0.79 & 0.67 	& 0.74 	& 0.65 	\\
+Mixed (\SI{10}{\percent} anomalies)	& 0.77 & 0.47 	& 0.63 	& 0.47 	\\
+\bottomrule
+\end{tabular}
 \end{table}
-
-The comparison reveals several key insights. The Normal-Only model with $\nu=0.001$ achieves strong generalization performance with a test F1-macro score of $0.74$, demonstrating robust anomaly detection capabilities. However, the model with $\nu=1\text{e-}05$ achieves the best test performance ($0.80$) at the cost of slightly lower training performance ($0.88$ vs $0.91$), suggesting a better bias-variance tradeoff. The All-Data model ($\nu=0.286$) performs moderately with a test F1-macro of $0.65$, significantly lower than the best Normal-Only configuration. Models trained with mixed data show progressively degraded performance as contamination decreases, with test scores dropping from $0.61$ (\SI{50}{\percent} anomalies) to $0.47$ (\SI{10}{\percent} anomalies). The Normal-Only model with default $\nu=0.5$ performs poorly ($0.47$ on test), confirming that this setting is inappropriate for clean datasets.
-
-While models trained on mixed data (All-Data and Mixed configurations) can perform reasonably well if $\nu$ is carefully tuned to the contamination rate, they generally exhibit lower stability and performance compared to the model trained on clean data. This reinforces the advantage of Novelty Detection when a clean reference dataset is available. The Normal-Only approach not only achieves superior metrics but also demonstrates more consistent behavior across training, validation, and test sets, indicating better generalization capabilities.
