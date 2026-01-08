@@ -28,14 +28,14 @@ We performed a grid search to select the optimal learning rate, testing values i
 
 \subsection{Reconstruction Error Analysis}
 \paragraph{Threshold Selection}
-After training, we analyzed the distribution of reconstruction errors across the validation set, shown in \cref{fig:task3_ecdf_val}. Since this set is only composed of normal samples, we selected the threshold assuming that \SI{95}{\percent} of data should be considered as normal by the model. This choice looks reasonable as, around this percentage, the reconstruction error starts increasing abruptly. Considering this approach, the reconstruction error threshold is set to 0.6.
+After training, we analyzed the distribution of reconstruction errors across the validation set, shown in \cref{fig:task3_ecdf_val}. We selected the threshold based on the elbow point: the chosen value is 0.3. After that value, the reconstruction error increases more abruptly. Specifically, $\approx\SI{90}{\percent}$ of the samples has a reconstruction error lower than the identified threshold.
 
 \paragraph{Reconstruction errors for each set}
 \Cref{fig:task3_ecdf_all} presents the Empirical Cumulative Distribution Function (ECDF) of the reconstruction errors for the validation, full training and test sets.
 \begin{itemize}
     \item \textbf{Validation Set (Blue):} Shows the lowest errors, as it consists only of normal data.
-    \item \textbf{Training Set (Purple):} The curve is shifted to the left with respect to the previous one. The error exceeds the threshold after $\approx$~\SI{70}{\percent} of samples, which is consistent with the ratio of anomalies present in the dataset (\SI{29}{\percent}). This is due to the presence of anomalies in the full training set (which were excluded during AE training), which the model fails to reconstruct.
-    \item \textbf{Test Set (Orange):} Shows the highest errors. The error exceeds the threshold after $\approx$~\SI{30}{\percent} of samples, which aligns with the amount of anomalies in the test set (\SI{63}{\percent}).
+    \item \textbf{Training Set (Purple):} The curve is shifted to the left with respect to the previous one. The error exceeds the threshold after $\approx$~\SI{65}{\percent} of samples, which is quite consistent with the ratio of anomalies present in the dataset (\SI{29}{\percent}). This is due to the presence of anomalies in the full training set (which were excluded during AE training), which the model fails to reconstruct.
+    \item \textbf{Test Set (Orange):} Shows the highest errors. The error exceeds the threshold after $\approx$~\SI{25}{\percent} of samples, which reasonably aligns with the amount of anomalies in the test set (\SI{63}{\percent}).
 \end{itemize}
 
 \begin{figure}
@@ -46,7 +46,7 @@ After training, we analyzed the distribution of reconstruction errors across the
 	{\includegraphics[width=.47\linewidth]{img/Task3/task3_ecdf_reconstruction_error_combined.png}} \\
   	\caption{ECDF curves of reconstruction errors for the different sets. The red line indicates the identified threshold.}{}\label{fig:task3_ecdf}
 \end{figure}
-\paragraph{Model performance} Finally, we used the identified threshold to perform the classification: if a sample has a reconstruction error higher than 0.6, it is classified as an anomaly. \Cref{tab:task3_ae} summarizes the performance across the entire training, validation and test sets. The model is quite good at recognizing the anomalies on the training set, as demonstrated by the high precision and recall on both classes. The validation set is only composed of normal samples, hence the metrics related to the anomaly class are zero. Nevertheless, only 144 samples on 2690 (\SI{5}{\percent}) are incorrectly classified as anomalies, mirroring the reasoning performed when selecting the threshold. Finally, the model demonstrates to be quite good at generalizing on the test set, with an accuracy of \num{0.79}. Precision is around \num{0.80} for both classes, while recall is higher on the anomaly class (0.91). The model, in fact, tends to classify \SI{40}{\percent} of normal samples as malign, probably because they exhibit different characteristics with respect to those in the training set, so the model fails in properly reconstructing them.
+\paragraph{Model performance} Finally, we used the identified threshold to perform the classification: if a sample has a reconstruction error higher than 0.3, it is classified as an anomaly. \Cref{tab:task3_ae} summarizes the performance across the entire training, validation and test sets. The model is quite good at recognizing the anomalies on the training set, as demonstrated by the high precision and recall on both classes. The validation set is only composed of normal samples, hence the metrics related to the anomaly class are zero. Nevertheless, only 259 samples out of 2690 (\SI{10}{\percent}) are incorrectly classified as anomalies, mirroring the reasoning performed when selecting the threshold. Finally, the model demonstrates to be quite good at generalizing on the test set, with an accuracy of \num{0.78}. Precision is around \num{0.80} for both classes, while recall is higher on the anomaly class (0.92). The model, in fact, tends to classify \SI{45}{\percent} of normal samples as anomalies, probably because they exhibit different characteristics with respect to those in the training set, so the model fails in properly reconstructing them.
 
 \begin{table}
     \centering
@@ -59,16 +59,15 @@ After training, we analyzed the distribution of reconstruction errors across the
         \cmidrule(lr){2-4} \cmidrule(lr){5-7} \cmidrule(lr){8-10} \cmidrule(lr){11-13}
          & \textbf{Train} & \textbf{Val} & \textbf{Test} & \textbf{Train} & \textbf{Val} & \textbf{Test} & \textbf{Train} & \textbf{Val} & \textbf{Test} & \textbf{Train} & \textbf{Val} & \textbf{Test} \\
         \midrule
-        Normal & 0.96 & 1.00 & 0.79 & 0.94 & 0.95 & 0.60 & 0.95 & 0.97 & 0.68 & \multirow{2}{2em}{0.93} & \multirow{2}{2em}{0.95} & \multirow{2}{2em}{0.79}\\
-        Anomaly & 0.87 & 0.00 & 0.80 & 0.90 & 0.00 & 0.91 & 0.88 & 0.00 & 0.85 \\
+        Normal & 0.97 & 1.00 & 0.79 & 0.89 & 0.89 & 0.55 & 0.93 & 0.94 & 0.65 & \multirow{2}{2em}{0.90} & \multirow{2}{2em}{0.89} & \multirow{2}{2em}{0.78}\\
+        Anomaly & 0.78 & 0.00 & 0.78 & 0.93 & 0.00 & 0.92 & 0.85 & 0.00 & 0.84 \\
         \bottomrule
     \end{tabular}
 \end{table}
 
 \subsection{Latent Space Anomaly Detection (AE + OC-SVM)}
 
-We extracted the 16-dimensional bottleneck representation of the training set with only normal data and trained a OC-SVM on these latent features. As estimation of the $\nu$ parameter, we used \num{0.05}: in the previous paragraph, in fact, we observed that \SI{5}{\percent} of normal data tends to have a high reconstruction error, so they can be considered as anomalous by the model, that, otherwise, would create too loose boundaries. Then, we evaluated the model on both full training and test sets. The results are presented in \cref{tab:task3_ae_ocsvm_classification}.
-
+We extracted the 16-dimensional bottleneck representation of the training set with only normal data and trained a OC-SVM on these latent features. As estimation of the $\nu$ parameter, we used \num{0.1}: in the previous section, in fact, we observed that \SI{10}{\percent} of normal data tends to have a high reconstruction error, so they can be considered as anomalous by the model, that, otherwise, would create too loose boundaries. Then, we evaluated the model on both full training and test sets. The results are presented in \cref{tab:task3_ae_ocsvm_classification}.
 \begin{table}
     \centering
     \small
@@ -80,16 +79,16 @@ We extracted the 16-dimensional bottleneck representation of the training set wi
         \cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7} \cmidrule(lr){8-9}
          & \textbf{Train} & \textbf{Test} & \textbf{Train} & \textbf{Test} & \textbf{Train} &  \textbf{Test} & \textbf{Train} &  \textbf{Test} \\
         \midrule
-        Normal & 0.80 & 0.53 & 0.95 & 0.76 & 0.87 & 0.62 &  \multirow{2}{2em}{0.79} & \multirow{2}{2em}{0.66} \\
-        Anomaly & 0.76 & 0.81 & 0.40 & 0.60 & 0.53 & 0.69 \\
+        Normal & 0.85 & 0.63 & 0.90 & 0.72 & 0.87 & 0.67 &  \multirow{2}{2em}{0.82} & \multirow{2}{2em}{0.74} \\
+        Anomaly & 0.71 & 0.82 & 0.61 & 0.75 & 0.65 & 0.79 \\
         \bottomrule
     \end{tabular}
 \end{table}
 \paragraph{Performance Analysis}
-The AE+OC-SVM approach achieves an overall accuracy of \SI{79}{\percent} on the training set and \SI{66}{\percent} on the test set. Notably, on the training set, the model exhibits high recall for normal traffic (\SI{95}{\percent}), but a significantly lower value for anomalies (\SI{40}{\percent}). On the test set, instead, these two values are more similar ($0.76$ for normal data and $0.60$ for the anomalies). However, the model tends to classify anomalies as normal data, especially on the test set, as shown by the relatively low precision (\num{0.53}). Hence, the model tends to miss anomalies, while generating fewer false alarms.
+The AE+OC-SVM approach achieves an overall accuracy of \SI{82}{\percent} on the training set and \SI{74}{\percent} on the test set. Notably, on the training set, the model exhibits high recall for normal traffic (\SI{90}{\percent}), but a significantly lower value for anomalies (\SI{61}{\percent}). On the test set, instead, these two values are more similar ($0.72$ for normal data and $0.75$ for anomalies). However, the model tends to classify anomalies as normal data, especially on the test set, as shown by the relatively low precision (\num{0.63}). Hence, the model tends to miss anomalies, while generating fewer false alarms. Given these results, we also experimented with a smaller value of $\nu$ (\num{0.01}) that better matches the percentage of noise we expect in normal data, but we got lower performance on the full training set (accuracy: \num{0.76}, macro F1 score: \num{0.57}). It means that the encoder layer is probably emphasizing the intrinsic differences among normal data, conflating some with anomalies.
 
 \paragraph{Model Comparison}
-\Cref{tab:task3_model_comparison} summarizes the accuracy and the macro F1 score of the original OC-SVM model (trained with normal data only and $\nu = 0.001$), the Autoencoder with reconstruction error (AE) and the AE+OC-SVM model ($\nu = 0.05$). The first two models obtain similar performance, even though AE performs slightly better on the test set. The AE+OC-SVM  model, instead, performs worse on both the training and test dataset, with lower accuracy and macro F1 scores. The Autoencoder acts as a non-linear feature extractor, compressing the essential information of ``normality'' into the bottleneck while discarding noise. However, it fails reconstructing the anomalous samples: while it is an advantage when using the reconstruction error as discriminating factor, it is not perfectly representative when using OC-SVM.
+\Cref{tab:task3_model_comparison} summarizes the accuracy and the macro F1 score of the original OC-SVM model (trained with normal data only and $\nu = 0.001$), the Autoencoder with reconstruction error (AE) and the AE+OC-SVM model ($\nu = 0.1$). The first two models obtain similar performance, even though AE performs slightly better on the test set. The AE+OC-SVM  model, instead, performs worse on both the training and test set, with lower accuracy and macro F1 scores than the AE one. The Autoencoder acts as a non-linear feature extractor, compressing the essential information of ``normality'' into the bottleneck while discarding noise. However, it fails reconstructing the anomalous samples: while it is an advantage when using the reconstruction error as discriminating factor, it is not perfectly representative when using OC-SVM.
 
 \begin{table}
 \small
@@ -100,17 +99,17 @@ The AE+OC-SVM approach achieves an overall accuracy of \SI{79}{\percent} on the 
 \toprule
 {\textbf{Model}} & {\textbf{Accuracy$_{train}$}} & {\textbf{Accuracy$_{test}$}} & {\textbf{Macro F1 score$_{train}$}} & {\textbf{Macro F1 score$_{test}$}} \\
 \midrule
-Normal-Only OC-SVM& 0.93 & 0.74 	& 0.91 	& 0.73 	\\
-AE & 0.93 & 0.79 	& 0.92 	& 0.77 	\\
-AE + OC-SVM & 0.79 & 0.66 	& 0.70 	& 0.66 	\\
-PCA + OC-SVM & 0.90 & 0.76 	& 0.88 	& 0.75 	\\
+Normal-Only OC-SVM & 0.93 & 0.74 	& 0.91 	& 0.73 	\\
+AE & 0.90 & 0.78 	& 0.89 	& 0.75 	\\
+AE + OC-SVM & 0.82 & 0.74 	& 0.76 	& 0.73 	\\
+PCA + OC-SVM & 0.91 & 0.74 	& 0.88 	& 0.74 	\\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \subsection{PCA-based Anomaly Detection}
 
-Finally, we explored a linear dimensionality reduction technique: Principal Component Analysis (PCA). We analyzed the cumulative explained variance to determine the optimal number of components. Specifically, we found the elbow point, then selected 20 components to capture \SI{95}{\percent} of the variance. Then, we trained an OC-SVM on this reduced space using normal data only, setting $\nu$ as in the previous paragraphs (\num{0.05}).
+Finally, we explored a linear dimensionality reduction technique: Principal Component Analysis (PCA). We analyzed the cumulative explained variance to determine the optimal number of components. Specifically, we found the elbow point, then selected 20 components to capture \SI{95}{\percent} of the variance. Then, we trained an OC-SVM on this reduced space using normal data only, setting $\nu$ as the proportion of noise we expect in normal data as in \cref{sec:task2} (\num{0.001}).
 
 \begin{comment}
 \begin{figure}
@@ -131,13 +130,13 @@ Finally, we explored a linear dimensionality reduction technique: Principal Comp
         \cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7} \cmidrule(lr){8-9}
          & \textbf{Train} & \textbf{Test} & \textbf{Train} & \textbf{Test} & \textbf{Train} &  \textbf{Test} & \textbf{Train} &  \textbf{Test} \\
         \midrule
-        Normal & 0.92 & 0.66 & 0.95 & 0.72 & 0.93 & 0.69 &  \multirow{2}{2em}{0.90} & \multirow{2}{2em}{0.76} \\
-        Anomaly & 0.86 & 0.83 & 0.79 & 0.79 & 0.82 & 0.81 \\
+        Normal & 0.89 & 0.61 & 1.00 & 0.81 & 0.94 & 0.70 &  \multirow{2}{2em}{0.91} & \multirow{2}{2em}{0.74} \\
+        Anomaly & 0.98 & 0.86 & 0.70 & 0.70 & 0.82 & 0.77 \\
         \bottomrule
     \end{tabular}
 \end{table}
 
-\paragraph{Performance Analysis} \Cref{tab:task3_pca_classification} shows the results for the PCA-based model. On the training set, the model performs better on the normal class, with high precision and recall. On the test set, instead, it achieves higher metrics on the anomalous class. Overall, accuracy is fairly good, both on the training set (\num{0.90}) and on the test set (\num{0.76}).
+\paragraph{Performance Analysis} \Cref{tab:task3_pca_classification} shows the results for the PCA-based model. On the training set, the model performs better on the normal class, as shown by the high F1 score (\num{0.94}). On the test set, instead, it achieves higher metrics on the anomalous class (\num{0.77} of F1 score). Overall, accuracy is fairly good, both on the training set (\num{0.91}) and on the test set (\num{0.74}).
 
 \paragraph{Model Comparison}
-\Cref{tab:task3_model_comparison} summarizes the accuracy and the macro F1 score of the original OC-SVM model (trained with normal data only and $\nu = 0.001$), the Autoencoder with reconstruction error (AE), the AE+OC-SVM model ($\nu = 0.05$) and the PCA+OC-SVM model ($\nu = 0.05$).  The last model outperforms the AE+OC-SVM model. It also performs better than the original OC-SVM model on the test set, while it performs slightly worse on the training set. However, it does not perform as good as the Autoencoder with reconstruction error. This suggests that the manifold of normal network traffic is non-linear. PCA, being a linear method, cannot capture the complex non-linear relationships between features as effectively as the deep Autoencoder, leading to a less precise separation between normal and anomalous traffic.
+\Cref{tab:task3_model_comparison} summarizes the accuracy and the macro F1 score of the original OC-SVM model (trained with normal data only and $\nu = 0.001$), the Autoencoder with reconstruction error (AE), the AE+OC-SVM model ($\nu = 0.1$) and the PCA+OC-SVM model ($\nu = 0.001$).  The last model outperforms the AE+OC-SVM model, especially on the training set. It performs similarly to the original OC-SVM model and to the Autoencoder with reconstruction error. In particular, the PCA+OC-SVM achieves lower precision but higher recall on the benign class than the AE, while for the anomalies it is the vice versa. Even though PCA is a linear method, it performs quite good, indicating that the main relationships between features are linear.
