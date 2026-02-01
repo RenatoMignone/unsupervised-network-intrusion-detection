@@ -111,14 +111,6 @@ PCA + OC-SVM & 0.91 & 0.74 	& 0.88 	& 0.74 	\\
 
 Finally, we explored a linear dimensionality reduction technique: Principal Component Analysis (PCA). We analyzed the cumulative explained variance to determine the optimal number of components. Specifically, we found the elbow point, then selected 20 components to capture \SI{95}{\percent} of the variance. Then, we trained an OC-SVM on this reduced space using normal data only, setting $\nu$ as the proportion of noise we expect in normal data as in \cref{sec:task2} (\num{0.001}).
 
-\begin{comment}
-\begin{figure}
-    \centering
-    \includegraphics[width=0.7\textwidth]{img/Task3/task3_pca_explained_variance.png}
-    \caption{Cumulative Explained Variance by PCA Components.}
-    \label{fig:task3_pca_variance}
-\end{figure}
-\end{comment}
 \begin{table}
     \centering
     \small

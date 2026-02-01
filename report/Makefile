@@ -1,7 +1,7 @@
 TEX=pdflatex
 OUT_DIR=out
 MAIN=main.tex
-JOBNAME=Group2_FFNN
+JOBNAME=group2_lab3
 PDF=$(JOBNAME).pdf
 
 .PHONY: compile clean
