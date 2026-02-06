@@ -90,23 +90,6 @@ The AE+OC-SVM approach achieves an overall accuracy of \SI{82}{\percent} on the 
 \paragraph{Model Comparison}
 \Cref{tab:task3_model_comparison} summarizes the accuracy and the macro F1 score of the original OC-SVM model (trained with normal data only and $\nu = 0.001$), the Autoencoder with reconstruction error (AE) and the AE+OC-SVM model ($\nu = 0.1$). The first two models obtain similar performance, even though AE performs slightly better on the test set. The AE+OC-SVM  model, instead, performs worse on both the training and test set, with lower accuracy and macro F1 scores than the AE one. The Autoencoder acts as a non-linear feature extractor, compressing the essential information of ``normality'' into the bottleneck while discarding noise. However, it fails reconstructing the anomalous samples: while it is an advantage when using the reconstruction error as discriminating factor, it is not perfectly representative when using OC-SVM.
 
-\begin{table}
-\small
-\centering
-\caption{Performance comparison on training and test set of OC-SVM, Autoencoder with reconstruction error (AE), OC-SVM trained with the Autoencoder's embeddings (AE+OC-SVM) and OC-SVM trained with PCA components (PCA+OC-SVM).}
-\label{tab:task3_model_comparison}
-\begin{tabular}{lcccc}
-\toprule
-{\textbf{Model}} & {\textbf{Accuracy$_{train}$}} & {\textbf{Accuracy$_{test}$}} & {\textbf{Macro F1 score$_{train}$}} & {\textbf{Macro F1 score$_{test}$}} \\
-\midrule
-Normal-Only OC-SVM & 0.93 & 0.74 	& 0.90 	& 0.73 	\\
-AE & 0.90 & 0.78 	& 0.89 	& 0.75 	\\
-AE + OC-SVM & 0.82 & 0.74 	& 0.76 	& 0.73 	\\
-PCA + OC-SVM & 0.91 & 0.74 	& 0.88 	& 0.74 	\\
-\bottomrule
-\end{tabular}
-\end{table}
-
 \subsection{PCA-based Anomaly Detection}
 
 Finally, we explored a linear dimensionality reduction technique: Principal Component Analysis (PCA). We analyzed the cumulative explained variance to determine the optimal number of components. Specifically, we found the elbow point, then selected 20 components to capture \SI{95}{\percent} of the variance. Then, we trained an OC-SVM on this reduced space using normal data only, setting $\nu$ as the proportion of noise we expect in normal data as in \cref{sec:task2} (\num{0.001}).
@@ -126,6 +109,23 @@ Finally, we explored a linear dimensionality reduction technique: Principal Comp
         Anomaly & 0.98 & 0.86 & 0.70 & 0.70 & 0.82 & 0.77 \\
         \bottomrule
     \end{tabular}
+\end{table}
+
+\begin{table}
+\small
+\centering
+\caption{Performance comparison on training and test set of OC-SVM, Autoencoder with reconstruction error (AE), OC-SVM trained with the Autoencoder's embeddings (AE+OC-SVM) and OC-SVM trained with PCA components (PCA+OC-SVM).}
+\label{tab:task3_model_comparison}
+\begin{tabular}{lcccc}
+\toprule
+{\textbf{Model}} & {\textbf{Accuracy$_{train}$}} & {\textbf{Accuracy$_{test}$}} & {\textbf{Macro F1 score$_{train}$}} & {\textbf{Macro F1 score$_{test}$}} \\
+\midrule
+Normal-Only OC-SVM & 0.93 & 0.74 	& 0.90 	& 0.73 	\\
+AE & 0.90 & 0.78 	& 0.89 	& 0.75 	\\
+AE + OC-SVM & 0.82 & 0.74 	& 0.76 	& 0.73 	\\
+PCA + OC-SVM & 0.91 & 0.74 	& 0.88 	& 0.74 	\\
+\bottomrule
+\end{tabular}
 \end{table}
 
 \paragraph{Performance Analysis} \Cref{tab:task3_pca_classification} shows the results for the PCA-based model. On the training set, the model performs better on the normal class, as shown by the high F1 score (\num{0.94}). On the test set, instead, it achieves higher metrics on the anomalous class (\num{0.77} of F1 score). Overall, accuracy is fairly good, both on the training set (\num{0.91}) and on the test set (\num{0.74}).
